@@ -8,6 +8,7 @@ import time
 import numpy as np
 import cv2
 
+from pobalog.hp_bar_recognition import HPBarRecognition
 from pobalog.text_area_detection import TextAreaDetection
 from pobalog.whole_image_matching import WholeImageMatching
 
@@ -41,8 +42,8 @@ def run(video, screenshot_dir, engines):
             cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
             last_frame_idx = frame_idx
             ret, frame = cap.read()
-            for engine in engines:
-                print(engine.evaluate(frame))
+            for key, engine in engines.items():
+                print(key, engine.evaluate(frame))
 
         # Display the resulting frame
         cv2.imshow('video', frame)
@@ -85,9 +86,13 @@ def main():
     if not os.path.isdir(args.screenshot):
         print("Screenshot directory does not exist")
         return
-    engines = []
-    engines.append(WholeImageMatching("template/message_window.png"))
-    engines.append(TextAreaDetection([908, 1065, 17, 1342], 100))
+    engines = {}
+    engines['message_window'] = WholeImageMatching("template/message_window.png")
+    engines['hp_area_friend'] = WholeImageMatching("template/hp_area_friend.png")
+    engines['hp_area_opponent'] = WholeImageMatching("template/hp_area_opponent.png")
+    engines['hp_bar_friend'] = HPBarRecognition([1028, 1034, 29, 359])
+    engines['hp_bar_opponent'] = HPBarRecognition([94, 102, 1559, 1889])
+    engines['text_area'] = TextAreaDetection([908, 1065, 17, 1342], 100)
     run(args.video, args.screenshot, engines)
 
 
