@@ -21,10 +21,6 @@ from pobalog.trigger_hp_area_friend import TriggerHPAreaFriend
 from pobalog.trigger_hp_area_opponent import TriggerHPAreaOpponent
 from pobalog.trigger_message_recognition import TriggerMessageRecognition
 
-MESSAGE_WINDOW_THRES = 0.05
-TEXT_AREA_MIN_THRES = 500
-TEXT_AREA_PEAK_THRES = 0.8
-
 
 def get_preproceses():
     pmw = PreprocessMessageWindow()

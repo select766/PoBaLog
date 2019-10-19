@@ -26,8 +26,8 @@ class WholeImageMatching:
         whole_template = cv2.imread(template_path, cv2.IMREAD_COLOR)
         whole_mask = np.any(whole_template != WholeImageMatching.MASK_COLOR, axis=2)  # (h, w)のboolean maskで有効領域True
         # マスクのうち有効な矩形領域を抽出し、後の処理の領域を狭める
-        self._match_area = (_find_nonzero_slice(np.any(whole_mask, axis=0)),
-                            _find_nonzero_slice(np.any(whole_mask, axis=1)))
+        self._match_area = (_find_nonzero_slice(np.any(whole_mask, axis=1)),
+                            _find_nonzero_slice(np.any(whole_mask, axis=0)))
         self.mask = whole_mask[self._match_area]
         self.valid_template = whole_template[self._match_area][self.mask]  # (有効ピクセル数, 3=BGR)
 

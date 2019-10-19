@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PoBaLog</title>
+    <script src="https://unpkg.com/vue"></script>
+</head>
+<body>
+  <h1>PoBaLog</h1>
+  <div id="app">
+    <table>
+      <tr><th></th><th>自分</th><th>相手</th></tr>
+      <tr><td>ポケモン</td><td>{{state.friend.name}}</td><td>{{state.opponent.name}}</td></tr>
+      <tr><td>HP</td><td>{{((state.friend.hp_ratio * 100) | 0)}} %</td><td>{{((state.opponent.hp_ratio * 100) | 0)}} %</td></tr>
+    </table>
+  </div>
+  <div id="json" style="white-space: pre;"></div>
+<script>
+    let app = new Vue({
+      el: '#app',
+      data: {
+        frame: 0,
+        state: {
+          friend: {
+            name: null,
+            hp_ratio: 0
+          },
+          opponent: {
+            name: null,
+            hp_ratio: 0
+          }
+        }
+      }
+    })
+  let ws = new WebSocket(`ws://${location.hostname}:15100/`);
+  ws.onmessage = function (event) {
+    console.log('msg received', event);
+    const d = JSON.parse(event.data);
+    document.getElementById('json').innerText = JSON.stringify(d, null, 2);
+    for (const k of Object.keys(d)) {
+      app[k] = d[k];
+    }
+  }
+</script>
+</body>
+</html>
