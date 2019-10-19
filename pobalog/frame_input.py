@@ -8,12 +8,15 @@ import time
 import numpy as np
 import cv2
 
+from pobalog.text_area_detection import TextAreaDetection
+from pobalog.whole_image_matching import WholeImageMatching
+
 
 def nothing(x):
     pass
 
 
-def run(video, screenshot_dir):
+def run(video, screenshot_dir, engines):
     cap = cv2.VideoCapture(video)
     print('width', cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     print('height', cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -38,6 +41,8 @@ def run(video, screenshot_dir):
             cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
             last_frame_idx = frame_idx
             ret, frame = cap.read()
+            for engine in engines:
+                print(engine.evaluate(frame))
 
         # Display the resulting frame
         cv2.imshow('video', frame)
@@ -80,7 +85,10 @@ def main():
     if not os.path.isdir(args.screenshot):
         print("Screenshot directory does not exist")
         return
-    run(args.video, args.screenshot)
+    engines = []
+    engines.append(WholeImageMatching("template/message_window.png"))
+    engines.append(TextAreaDetection([908, 1065, 17, 1342], 100))
+    run(args.video, args.screenshot, engines)
 
 
 if __name__ == '__main__':
