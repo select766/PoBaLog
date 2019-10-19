@@ -38,8 +38,8 @@ class MessageRecognition:
             response = client.document_text_detection(image=vis_image)
             with open(cache_result_path, "wb") as f:
                 pickle.dump(response, f, pickle.HIGHEST_PROTOCOL)
-        return self.get_text(response)
+        return self.extract_content(response)
 
-    def get_text(self, response):
+    def extract_content(self, response):
         # APIの結果から単純なテキスト部分を取得
-        return response.full_text_annotation.text
+        return {'text': response.full_text_annotation.text}
