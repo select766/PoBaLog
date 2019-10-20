@@ -54,12 +54,23 @@ def update_hp_bar_opponent(state, recog_value):
     state['opponent']['hp_ratio'] = recog_value['hp_ratio']
 
 
-def run(result_dir):
-    with open(os.path.join(result_dir, 'pipeline.bin'), 'rb') as f:
-        video_results = pickle.load(f)
+def update_by_frame(state, frame_recognition_result):
+    updated = False
+    for recog_key, recog_value in frame_recognition_result.items():
+        updated = True
+        if recog_key == 'message_window':
+            update_message_window(state, recog_value)
+        elif recog_key == 'hp_bar_friend':
+            update_hp_bar_friend(state, recog_value)
+        elif recog_key == 'hp_bar_opponent':
+            update_hp_bar_opponent(state, recog_value)
+        else:
+            raise KeyError
+    return updated
 
-    frame_recognition_results = video_results['frame_recognition_results']
-    state = {
+
+def get_initial_state():
+    return {
         'friend': {
             'name': None,
             'hp_ratio': 0.0,
@@ -69,21 +80,19 @@ def run(result_dir):
             'hp_ratio': 0.0,
         }
     }
+
+
+def run(result_dir):
+    with open(os.path.join(result_dir, 'pipeline.bin'), 'rb') as f:
+        video_results = pickle.load(f)
+
+    frame_recognition_results = video_results['frame_recognition_results']
+    state = get_initial_state()
     # 前から順に認識結果を受け取り、状態を更新していく
     frame_states = {}
 
     for frame_idx in sorted(frame_recognition_results.keys()):
-        updated = False
-        for recog_key, recog_value in frame_recognition_results[frame_idx].items():
-            updated = True
-            if recog_key == 'message_window':
-                update_message_window(state, recog_value)
-            elif recog_key == 'hp_bar_friend':
-                update_hp_bar_friend(state, recog_value)
-            elif recog_key == 'hp_bar_opponent':
-                update_hp_bar_opponent(state, recog_value)
-            else:
-                raise KeyError
+        updated = update_by_frame(state, frame_recognition_results[frame_idx])
         if updated:
             frame_states[frame_idx] = copy.deepcopy(state)
     video_results['frame_states'] = frame_states
