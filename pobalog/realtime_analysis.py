@@ -101,7 +101,7 @@ def run(frame_queue, result_dir):
     ws.close()
 
 
-def capture(device: int, frame_queue: multiprocessing.Queue):
+def capture(device: int, frame_queue: multiprocessing.Queue, result_dir, record):
     """
     画像をキャプチャするプロセス
     :param device:
@@ -110,6 +110,10 @@ def capture(device: int, frame_queue: multiprocessing.Queue):
     cap = cv2.VideoCapture(device)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+    video_writer = None
+    if record:
+        fourcc = cv2.VideoWriter_fourcc(*'DIVX')
+        video_writer = cv2.VideoWriter(os.path.join(result_dir, 'record.avi'), fourcc, 60, (1920, 1080))
 
     cv2.namedWindow('video')
     frame_idx = -1
@@ -126,12 +130,16 @@ def capture(device: int, frame_queue: multiprocessing.Queue):
             frame_queue.put_nowait(frame)
         except queue.Full:
             print("Queue Full")
+        if video_writer is not None:
+            video_writer.write(frame)
         key = cv2.waitKeyEx(1)  # waitKeyだと矢印が取れない
         if key == ord('q'):
             break
         print(f"\rfps={(frame_idx + 1) / (time.time() - start_time)}", end="")
     frame_queue.put(None)
     cap.release()
+    if video_writer is not None:
+        video_writer.release()
     cv2.destroyAllWindows()
 
 
@@ -139,13 +147,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("device", type=int)
     parser.add_argument("result", help="directory to save result")
+    parser.add_argument("--record", action="store_true")
     args = parser.parse_args()
     if not os.path.isdir(args.result):
         os.makedirs(args.result)
     frame_queue = multiprocessing.Queue(maxsize=300)
     p = multiprocessing.Process(target=run, args=(frame_queue, args.result))
     p.start()
-    capture(args.device, frame_queue)
+    capture(args.device, frame_queue, args.result, args.record)
 
 
 if __name__ == '__main__':
